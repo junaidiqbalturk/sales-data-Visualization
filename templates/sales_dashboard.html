@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Dashboard with Customer Segmentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            text-align: center;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 90%;
+        }
+        h1, h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .chart-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Sales Dashboard with Customer Segmentation</h1>
+
+        <!-- Customer Segmentation Visualization -->
+        <div class="chart-container">
+            <h2>Customer Segmentation</h2>
+            <canvas id="customer-segmentation-chart"></canvas>
+        </div>
+
+        <!-- JavaScript for Customer Segmentation Chart -->
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+            // Function to render Customer Segmentation chart
+            function renderCustomerSegmentationChart(customer_metrics) {
+                var ctx = document.getElementById('customer-segmentation-chart').getContext('2d');
+                var chart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: 'Cluster 0',
+                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                            data: getClusterData(customer_metrics, 0)
+                        }, {
+                            label: 'Cluster 1',
+                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                            data: getClusterData(customer_metrics, 1)
+                        }, {
+                            label: 'Cluster 2',
+                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                            data: getClusterData(customer_metrics, 2)
+                        }]
+                    },
+                    options: {
+                        scales: {
+                            xAxes: [{
+                                type: 'linear',
+                                position: 'bottom'
+                            }]
+                        }
+                    }
+                });
+            }
+
+            // Function to get data for each cluster
+            function getClusterData(customer_metrics, cluster) {
+                var data = [];
+                customer_metrics.forEach(function(customer) {
+                    if (customer.Cluster === cluster) {
+                        data.push({
+                            x: customer['Total Spending'],
+                            y: customer['Purchase Frequency']
+                        });
+                    }
+                });
+                return data;
+            }
+
+            // Get customer metrics data from Flask
+            var customer_metrics = {{ customer_metrics.to_json() | safe }};
+
+            // Call function to render Customer Segmentation chart
+            renderCustomerSegmentationChart(customer_metrics);
+        </script>
+    </div>
+</body>
+</html>

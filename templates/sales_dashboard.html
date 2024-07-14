@@ -4,99 +4,208 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Dashboard with Customer Segmentation</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f0f0;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+        /* Custom styles */
+        .navbar-custom {
+            background-color: #343a40;
         }
-        .container {
-            text-align: center;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
-            width: 90%;
+        .navbar-custom .navbar-brand,
+        .navbar-custom .nav-link {
+            color: #ffffff;
         }
-        h1, h2 {
-            color: #333;
+        .card-custom {
+            border: none;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             margin-bottom: 20px;
         }
+        .card-header-custom {
+            background-color: #007bff;
+            color: #ffffff;
+            border-radius: 10px 10px 0 0;
+        }
         .chart-container {
-            margin-top: 20px;
+            position: relative;
+            height: 40vh;
+            width: 80vw;
+            margin: auto;
+        }
+        .img-fluid {
+            width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Sales Dashboard with Customer Segmentation</h1>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-custom">
+        <a class="navbar-brand" href="#">Sales Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item active">
+                    <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#top-products">Top Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#monthly-sales">Monthly Sales</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#kmeans-clustering">K-means Clustering</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#hierarchical-clustering">Hierarchical Clustering</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-        <!-- Customer Segmentation Visualization -->
-        <div class="chart-container">
-            <h2>Customer Segmentation</h2>
-            <canvas id="customer-segmentation-chart"></canvas>
+    <div class="container mt-4">
+        <h1 class="text-center">Sales Dashboard with Customer Segmentation</h1>
+
+        <!-- Top Products by Sales -->
+        <div class="card card-custom" id="top-products">
+            <div class="card-header card-header-custom">
+                Top Products by Sales
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ top_products_plot }}" alt="Top Products by Sales" class="img-fluid">
+            </div>
         </div>
 
-        <!-- JavaScript for Customer Segmentation Chart -->
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script>
-            // Function to render Customer Segmentation chart
-            function renderCustomerSegmentationChart(customer_metrics) {
-                var ctx = document.getElementById('customer-segmentation-chart').getContext('2d');
-                var chart = new Chart(ctx, {
-                    type: 'scatter',
-                    data: {
-                        datasets: [{
-                            label: 'Cluster 0',
-                            backgroundColor: 'rgba(255, 99, 132, 0.5)',
-                            data: getClusterData(customer_metrics, 0)
-                        }, {
-                            label: 'Cluster 1',
-                            backgroundColor: 'rgba(54, 162, 235, 0.5)',
-                            data: getClusterData(customer_metrics, 1)
-                        }, {
-                            label: 'Cluster 2',
-                            backgroundColor: 'rgba(75, 192, 192, 0.5)',
-                            data: getClusterData(customer_metrics, 2)
-                        }]
+        <!-- Monthly Sales Trends -->
+        <div class="card card-custom" id="monthly-sales">
+            <div class="card-header card-header-custom">
+                Monthly Sales Trends
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ monthly_sales_plot }}" alt="Monthly Sales Trends" class="img-fluid">
+            </div>
+        </div>
+
+        <!-- Customer Segmentation (K-means Clustering) -->
+        <div class="card card-custom" id="kmeans-clustering">
+            <div class="card-header card-header-custom">
+                Customer Segmentation (K-means Clustering)
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="customer-segmentation-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Customer Segmentation (Hierarchical Clustering) -->
+        <div class="card card-custom" id="hierarchical-clustering">
+            <div class="card-header card-header-custom">
+                Customer Segmentation (Hierarchical Clustering)
+            </div>
+            <div class="card-body">
+                <div id="dendrogram"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var customer_metrics_kmeans = {{ customer_metrics_kmeans | safe }};
+        var Z = {{ Z | safe }};
+
+        function renderCustomerSegmentationChart(customer_metrics) {
+            var clusterData = [[], [], []];
+
+            customer_metrics.forEach(function(customer) {
+                clusterData[customer.Cluster].push({
+                    x: customer['Total Spending'],
+                    y: customer['Purchase Frequency'],
+                    label: customer['Customer Name']
+                });
+            });
+
+            var ctx = document.getElementById('customer-segmentation-chart').getContext('2d');
+            var chart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [{
+                        label: 'Cluster 0',
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        data: clusterData[0]
+                    }, {
+                        label: 'Cluster 1',
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        data: clusterData[1]
+                    }, {
+                        label: 'Cluster 2',
+                        backgroundColor: 'rgba(75, 192, 192, 0.5)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        data: clusterData[2]
+                    }]
+                },
+                options: {
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            title: {
+                                display: true,
+                                text: 'Total Spending'
+                            }
+                        },
+                        y: {
+                            type: 'linear',
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Purchase Frequency'
+                            }
+                        }
                     },
-                    options: {
-                        scales: {
-                            xAxes: [{
-                                type: 'linear',
-                                position: 'bottom'
-                            }]
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(tooltipItem) {
+                                    return tooltipItem.raw.label + ': (' + tooltipItem.raw.x + ', ' + tooltipItem.raw.y + ')';
+                                }
+                            }
                         }
                     }
-                });
-            }
+                }
+            });
+        }
 
-            // Function to get data for each cluster
-            function getClusterData(customer_metrics, cluster) {
-                var data = [];
-                customer_metrics.forEach(function(customer) {
-                    if (customer.Cluster === cluster) {
-                        data.push({
-                            x: customer['Total Spending'],
-                            y: customer['Purchase Frequency']
-                        });
-                    }
-                });
-                return data;
-            }
+        renderCustomerSegmentationChart(customer_metrics_kmeans);
 
-            // Get customer metrics data from Flask
-            var customer_metrics = {{ customer_metrics.to_json() | safe }};
+        function renderDendrogram(Z) {
+            var data = [{
+                type: 'scatter',
+                mode: 'lines',
+                x: Z.map(row => row[0]),
+                y: Z.map(row => row[2]),
+                line: { color: 'rgb(100, 100, 100)' }
+            }];
 
-            // Call function to render Customer Segmentation chart
-            renderCustomerSegmentationChart(customer_metrics);
-        </script>
-    </div>
+            var layout = {
+                title: 'Hierarchical Clustering Dendrogram',
+                xaxis: { title: 'Sample index' },
+                yaxis: { title: 'Distance' }
+            };
+
+            Plotly.newPlot('dendrogram', data, layout);
+        }
+
+        renderDendrogram(Z);
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

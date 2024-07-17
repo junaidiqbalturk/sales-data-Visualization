@@ -13,6 +13,9 @@ app = Flask(__name__)
 # Function to load data
 def load_data():
     df = pd.read_csv('data/sales_data.csv')
+    df['order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y', errors='coerce')
+    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
+    df.dropna(subset=['order Date', 'Ship Date'], inplace=True)
     return df
 
 @app.route('/')
@@ -32,11 +35,27 @@ def sales_dashboard():
     top_products_plot = plot_top_products(df)
     monthly_sales_plot = plot_monthly_sales(df)
 
+    # Generate Region sales plot
+    sales_by_region_plot = plot_sales_by_region(df)
+    # Generate Order processesing time plot
+    order_processing_time_plot = plot_order_processing_time(df)
+    # Generate Shipping Performance Plot
+    shipping_performance_plot = plot_shipping_performance(df)
+    #Sales Forecast plot
+    sales_forecast_plot = forecast_sales(df)
+    #Geographical Analysis plot for sales
+    geographical_analysis_plot = plot_geographical_analysis(df)
+
     return render_template('sales_dashboard.html',
                            customer_metrics_kmeans=customer_metrics_kmeans_json,
                            Z=Z_json,
                            top_products_plot=top_products_plot,
-                           monthly_sales_plot=monthly_sales_plot)
+                           monthly_sales_plot=monthly_sales_plot,
+                           sales_by_region_plot=sales_by_region_plot,
+                           order_processing_time_plot=order_processing_time_plot,
+                           shipping_performance_plot=shipping_performance_plot,
+                           sales_forecast_plot=sales_forecast_plot,
+                           geographical_analysis_plot=geographical_analysis_plot)
 
 def perform_customer_segmentation(df):
     total_spending = df.groupby('Customer Name')['Sales'].sum()
@@ -48,6 +67,11 @@ def perform_customer_segmentation(df):
         'Purchase Frequency': purchase_frequency,
         'Average Order Value': average_order_value
     })
+
+    print("Customer Metrics before scaling:\n", customer_metrics.head())  # Debug statement
+
+    if customer_metrics.shape[0] == 0:
+        raise ValueError("No customer data available for segmentation.")
 
     scaler = StandardScaler()
     customer_metrics_scaled = scaler.fit_transform(customer_metrics)
@@ -69,6 +93,11 @@ def perform_hierarchical_clustering(df):
         'Purchase Frequency': purchase_frequency,
         'Average Order Value': average_order_value
     })
+
+    print("Customer Metrics before hierarchical clustering:\n", customer_metrics.head())  # Debug statement
+
+    if customer_metrics.shape[0] == 0:
+        raise ValueError("No customer data available for hierarchical clustering.")
 
     scaler = StandardScaler()
     customer_metrics_scaled = scaler.fit_transform(customer_metrics)
@@ -116,6 +145,78 @@ def plot_top_products(df, n=5):
     plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
 
     return plot_data_uri
+
+# Function to plot total sales by region
+def plot_sales_by_region(df):
+    sales_by_region = df.groupby('Region')['Sales'].sum()
+    plt.figure(figsize=(10, 6))
+    sales_by_region.plot(kind='bar')
+    plt.xlabel('Region')
+    plt.ylabel('Total Sales ($)')
+    plt.title('Total Sales by Region')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    return plot_data_uri
+
+
+# Function to plot order processing time
+def plot_order_processing_time(df):
+    df['Processing Time'] = (df['Ship Date'] - df['Order Date']).dt.days
+    processing_time = df.groupby('Order ID')['Processing Time'].mean()
+    plt.figure(figsize=(10, 6))
+    processing_time.plot(kind='hist', bins=20)
+    plt.xlabel('Processing Time (days)')
+    plt.ylabel('Frequency')
+    plt.title('Order Processing Time Distribution')
+    plt.tight_layout()
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    return plot_data_uri
+
+# Function to plot shipping performance
+def plot_shipping_performance(df):
+    shipping_performance = df.groupby('Ship Mode')['Sales'].sum()
+    plt.figure(figsize=(10, 6))
+    shipping_performance.plot(kind='bar')
+    plt.xlabel('Ship Mode')
+    plt.ylabel('Total Sales ($)')
+    plt.title('Shipping Performance by Sales')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    return plot_data_uri
+
+# Function to forecast sales
+def forecast_sales(df):
+    sales_df = df.groupby('Order Date')['Sales'].sum().reset_index()
+    sales_df.columns = ['ds', 'y']
+    model = Prophet()
+    model.fit(sales_df)
+    future = model.make_future_dataframe(periods=12, freq='M')
+    forecast = model.predict(future)
+    fig = model.plot(forecast)
+    buffer = BytesIO()
+    fig.savefig(buffer, format='png')
+    buffer.seek(0)
+    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    return plot_data_uri
+
+# Function to plot geographical analysis
+def plot_geographical_analysis(df):
+    sales_by_city = df.groupby('City')['Sales'].sum().reset_index()
+    fig = px.scatter_geo(sales_by_city, locations="City", locationmode='USA-states', size="Sales", title='Sales by City')
+    plot_data_uri = fig.to_html(full_html=False)
+    return plot_data_uri
+
 
 if __name__ == '__main__':
     app.run(debug=True)

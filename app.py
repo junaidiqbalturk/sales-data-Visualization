@@ -10,12 +10,32 @@ import json
 
 app = Flask(__name__)
 
-# Function to load data
+#Processing and transformation of Dates in the data
+def process_transform_dates(df):
+    df['order Date'] = pd.to_datetime(df['Order Date'])
+    df['ship Date'] = pd.to_datetime(df['ship Date'])
+    return df
+
+# Introduces a function to load data from csv
 def load_data():
+    #loading csv file
     df = pd.read_csv('data/sales_data.csv')
-    df['order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y', errors='coerce')
-    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d-%m-%Y', errors='coerce')
+    print("what are the colum names\n",df.columns)
+    #sending the data for transformation
+    process_transform_dates(df)
+    #print("just after start\n",df.head()) #need to check the data that is geting loaded
+
+
+    #checking for null dates in orders and ship dates
+    print("checking empty dates in orders\n",df[df['order Date'].isna()])
+
+    # checking for null dates in ship dates
+    print("checking empty dates in Shipping\n", df[df['Ship Date'].isna()])
+
     df.dropna(subset=['order Date', 'Ship Date'], inplace=True)
+    #needs to check if the empty dates are dropped from teh data then what is the situation of data
+    print('After dropping empty dates columns\n',df.head())
+   # print("Data after loading into pd\n",df.head())
     return df
 
 @app.route('/')
@@ -62,16 +82,22 @@ def perform_customer_segmentation(df):
     purchase_frequency = df['Customer Name'].value_counts()
     average_order_value = df.groupby('Customer Name')['Sales'].mean()
 
+    ##Trying to debug the function through console
+    print('Spending sum\n',total_spending)
+    print('frequence\n',purchase_frequency)
+    print('avg_order_Val\n',average_order_value)
+
     customer_metrics = pd.DataFrame({
         'Total Spending': total_spending,
         'Purchase Frequency': purchase_frequency,
         'Average Order Value': average_order_value
     })
 
-    print("Customer Metrics before scaling:\n", customer_metrics.head())  # Debug statement
+    #print statement so that it can be checked what has populated into customer_metrics
+    print("Metrics before scaling:\n", customer_metrics.head())
 
     if customer_metrics.shape[0] == 0:
-        raise ValueError("No customer data available for segmentation.")
+        raise ValueError("Customer data is not available for segments")
 
     scaler = StandardScaler()
     customer_metrics_scaled = scaler.fit_transform(customer_metrics)

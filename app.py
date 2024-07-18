@@ -12,8 +12,12 @@ app = Flask(__name__)
 
 #Processing and transformation of Dates in the data
 def process_transform_dates(df):
-    df['order Date'] = pd.to_datetime(df['Order Date'])
-    df['ship Date'] = pd.to_datetime(df['ship Date'])
+    df['order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y')
+    #checking the datatype of order date
+    print("datatype of order_Date\n",df['Order Date'].dtypes)
+    df['ship Date'] = pd.to_datetime(df['Ship Date'], format='%d/%m/%Y')
+    # checking the datatype of shipping date
+    print("datatype of shipping_Date\n", df['Ship Date'].dtypes)
     return df
 
 # Introduces a function to load data from csv

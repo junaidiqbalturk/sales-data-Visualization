@@ -18,6 +18,7 @@ def process_transform_dates(df):
     df['ship Date'] = pd.to_datetime(df['Ship Date'], format='%d/%m/%Y')
     # checking the datatype of shipping date
     print("datatype of shipping_Date\n", df['Ship Date'].dtypes)
+    df.dropna(subset=['order Date', 'Ship Date'], inplace=True)
     return df
 
 # Introduces a function to load data from csv
@@ -35,10 +36,8 @@ def load_data():
 
     # checking for null dates in ship dates
     print("checking empty dates in Shipping\n", df[df['Ship Date'].isna()])
-
-    df.dropna(subset=['order Date', 'Ship Date'], inplace=True)
     #needs to check if the empty dates are dropped from teh data then what is the situation of data
-    print('After dropping empty dates columns\n',df.head())
+   # print('After dropping empty dates columns\n',df.head())
    # print("Data after loading into pd\n",df.head())
     return df
 
@@ -196,17 +195,18 @@ def plot_sales_by_region(df):
 # Function to plot order processing time
 def plot_order_processing_time(df):
     df['Processing Time'] = (df['Ship Date'] - df['Order Date']).dt.days
-    processing_time = df.groupby('Order ID')['Processing Time'].mean()
-    plt.figure(figsize=(10, 6))
-    processing_time.plot(kind='hist', bins=20)
-    plt.xlabel('Processing Time (days)')
-    plt.ylabel('Frequency')
-    plt.title('Order Processing Time Distribution')
-    plt.tight_layout()
-    buffer = BytesIO()
-    plt.savefig(buffer, format='png')
-    buffer.seek(0)
-    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    print("Processing Time\n",df['Processing Time']) #statemet for checking processing time
+    #processing_time = df.groupby('Order ID')['Processing Time'].mean()
+    #plt.figure(figsize=(10, 6))
+    #processing_time.plot(kind='hist', bins=20)
+    #plt.xlabel('Processing Time (days)')
+    #plt.ylabel('Frequency')
+    #plt.title('Order Processing Time Distribution')
+    #plt.tight_layout()
+    #buffer = BytesIO()
+    #plt.savefig(buffer, format='png')
+    #buffer.seek(0)
+    #plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
     return plot_data_uri
 
 # Function to plot shipping performance

@@ -4,13 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        canvas {
+        .card-body img, .card-body div {
             width: 100%;
-            max-width: 600px;
+            height: auto;
+        }
+        .plotly-graph-div {
+            height: 400px;
         }
     </style>
 </head>
@@ -22,9 +24,33 @@
         <div class="row">
             <div class="col-md-6 mb-4">
                 <div class="card">
+                    <div class="card-header">Customer Metric K-means</div>
+                    <div class="card-body">
+                        <img src="data:image/png;base64,{{ customer_metric_kmeans_plot }}" alt="Customer Metric K-means">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">Customer Metric Hierarchical</div>
+                    <div class="card-body">
+                        <img src="data:image/png;base64,{{ customer_metric_hierarchical_plot }}" alt="Customer Metric Hierarchical">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
                     <div class="card-header">Top Products by Sales</div>
                     <div class="card-body">
                         <img src="data:image/png;base64,{{ top_products_plot }}" alt="Top Products by Sales">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card">
+                    <div class="card-header">Monthly Sales Plot</div>
+                    <div class="card-body">
+                        <img src="data:image/png;base64,{{ monthly_sales_plot }}" alt="Monthly Sales Plot">
                     </div>
                 </div>
             </div>
@@ -64,7 +90,7 @@
                 <div class="card">
                     <div class="card-header">Geographical Analysis</div>
                     <div class="card-body">
-                        <div id="geo-analysis">{{ geographical_analysis_plot | safe }}</div>
+                        <div id="geo-analysis" class="plotly-graph-div">{{ geographical_analysis_plot | safe }}</div>
                     </div>
                 </div>
             </div>

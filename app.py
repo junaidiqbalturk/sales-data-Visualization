@@ -7,18 +7,20 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 from scipy.cluster.hierarchy import dendrogram, linkage
 import json
+from prophet import Prophet
+import plotly.express as px
 
 app = Flask(__name__)
 
 #Processing and transformation of Dates in the data
 def process_transform_dates(df):
-    df['order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y')
+    df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d/%m/%Y')
     #checking the datatype of order date
     print("datatype of order_Date\n",df['Order Date'].dtypes)
-    df['ship Date'] = pd.to_datetime(df['Ship Date'], format='%d/%m/%Y')
+    df['Ship Date'] = pd.to_datetime(df['Ship Date'], format='%d/%m/%Y')
     # checking the datatype of shipping date
     print("datatype of shipping_Date\n", df['Ship Date'].dtypes)
-    df.dropna(subset=['order Date', 'Ship Date'], inplace=True)
+    df.dropna(subset=['Order Date', 'Ship Date'], inplace=True)
     return df
 
 # Introduces a function to load data from csv
@@ -32,7 +34,7 @@ def load_data():
 
 
     #checking for null dates in orders and ship dates
-    print("checking empty dates in orders\n",df[df['order Date'].isna()])
+    print("checking empty dates in orders\n",df[df['Order Date'].isna()])
 
     # checking for null dates in ship dates
     print("checking empty dates in Shipping\n", df[df['Ship Date'].isna()])
@@ -196,17 +198,17 @@ def plot_sales_by_region(df):
 def plot_order_processing_time(df):
     df['Processing Time'] = (df['Ship Date'] - df['Order Date']).dt.days
     print("Processing Time\n",df['Processing Time']) #statemet for checking processing time
-    #processing_time = df.groupby('Order ID')['Processing Time'].mean()
-    #plt.figure(figsize=(10, 6))
-    #processing_time.plot(kind='hist', bins=20)
-    #plt.xlabel('Processing Time (days)')
-    #plt.ylabel('Frequency')
-    #plt.title('Order Processing Time Distribution')
-    #plt.tight_layout()
-    #buffer = BytesIO()
-    #plt.savefig(buffer, format='png')
-    #buffer.seek(0)
-    #plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
+    processing_time = df.groupby('Order ID')['Processing Time'].mean()
+    plt.figure(figsize=(10, 6))
+    processing_time.plot(kind='hist', bins=20)
+    plt.xlabel('Processing Time (days)')
+    plt.ylabel('Frequency')
+    plt.title('Order Processing Time Distribution')
+    plt.tight_layout()
+    buffer = BytesIO()
+    plt.savefig(buffer, format='png')
+    buffer.seek(0)
+    plot_data_uri = base64.b64encode(buffer.getvalue()).decode()
     return plot_data_uri
 
 # Function to plot shipping performance

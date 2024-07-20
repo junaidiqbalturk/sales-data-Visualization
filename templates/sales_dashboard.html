@@ -4,94 +4,132 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sales Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        .card-body img, .card-body div {
-            width: 100%;
-            height: auto;
+        body {
+            padding-top: 56px; /* Adjust for fixed navbar */
         }
-        .plotly-graph-div {
-            height: 400px;
+        .navbar-nav a {
+            padding: 0.5rem 1rem;
+        }
+        .card img {
+            width: 100%;
+        }
+        .section {
+            padding: 2rem 0;
         }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <a class="navbar-brand" href="#">Sales Dashboard</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="#top-products">Top Products</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#sales-by-region">Sales by Region</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#order-processing-time">Order Processing Time</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#shipping-performance">Shipping Performance</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#sales-forecast">Sales Forecast</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#geographical-analysis">Geographical Analysis</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#customer-metrics-kmeans">Customer Metrics (K-Means)</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#customer-metrics-hierarchical">Customer Metrics (Hierarchical)</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#monthly-sales">Monthly Sales Plot</a>
+                </li>
+            </ul>
+        </div>
     </nav>
     <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Customer Metric K-means</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ customer_metric_kmeans_plot }}" alt="Customer Metric K-means">
-                    </div>
+        <div id="top-products" class="section">
+            <div class="card">
+                <div class="card-header">Top Products by Sales</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ top_products_plot }}" alt="Top Products by Sales">
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Customer Metric Hierarchical</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ customer_metric_hierarchical_plot }}" alt="Customer Metric Hierarchical">
-                    </div>
+        </div>
+        <div id="sales-by-region" class="section">
+            <div class="card">
+                <div class="card-header">Total Sales by Region</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ sales_by_region_plot }}" alt="Total Sales by Region">
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Top Products by Sales</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ top_products_plot }}" alt="Top Products by Sales">
-                    </div>
+        </div>
+        <div id="order-processing-time" class="section">
+            <div class="card">
+                <div class="card-header">Order Processing Time</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ order_processing_time_plot }}" alt="Order Processing Time">
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Monthly Sales Plot</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ monthly_sales_plot }}" alt="Monthly Sales Plot">
-                    </div>
+        </div>
+        <div id="shipping-performance" class="section">
+            <div class="card">
+                <div class="card-header">Shipping Performance</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ shipping_performance_plot }}" alt="Shipping Performance">
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Total Sales by Region</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ sales_by_region_plot }}" alt="Total Sales by Region">
-                    </div>
+        </div>
+        <div id="sales-forecast" class="section">
+            <div class="card">
+                <div class="card-header">Sales Forecast</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ sales_forecast_plot }}" alt="Sales Forecast">
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Order Processing Time</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ order_processing_time_plot }}" alt="Order Processing Time">
-                    </div>
+        </div>
+        <div id="geographical-analysis" class="section">
+            <div class="card">
+                <div class="card-header">Geographical Analysis</div>
+                <div class="card-body">
+                    <div id="geo-analysis">{{ geographical_analysis_plot | safe }}</div>
                 </div>
             </div>
-            <div class="col-md-6 mb-4">
-                <div class="card">
-                    <div class="card-header">Shipping Performance</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ shipping_performance_plot }}" alt="Shipping Performance">
-                    </div>
+        </div>
+        <div id="customer-metrics-kmeans" class="section">
+            <div class="card">
+                <div class="card-header">Customer Metrics (K-Means)</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ customer_metrics_kmeans_plot }}" alt="Customer Metrics (K-Means)">
                 </div>
             </div>
-            <div class="col-md-12 mb-4">
-                <div class="card">
-                    <div class="card-header">Sales Forecast</div>
-                    <div class="card-body">
-                        <img src="data:image/png;base64,{{ sales_forecast_plot }}" alt="Sales Forecast">
-                    </div>
+        </div>
+        <div id="customer-metrics-hierarchical" class="section">
+            <div class="card">
+                <div class="card-header">Customer Metrics (Hierarchical)</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ customer_metrics_hierarchical_plot }}" alt="Customer Metrics (Hierarchical)">
                 </div>
             </div>
-            <div class="col-md-12 mb-4">
-                <div class="card">
-                    <div class="card-header">Geographical Analysis</div>
-                    <div class="card-body">
-                        <div id="geo-analysis" class="plotly-graph-div">{{ geographical_analysis_plot | safe }}</div>
-                    </div>
+        </div>
+        <div id="monthly-sales" class="section">
+            <div class="card">
+                <div class="card-header">Monthly Sales Plot</div>
+                <div class="card-body">
+                    <img src="data:image/png;base64,{{ monthly_sales_plot }}" alt="Monthly Sales Plot">
                 </div>
             </div>
         </div>

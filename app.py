@@ -245,7 +245,34 @@ def forecast_sales(df):
 # Function to plot geographical analysis
 def plot_geographical_analysis(df):
     sales_by_city = df.groupby('City')['Sales'].sum().reset_index()
-    fig = px.scatter_geo(sales_by_city, locations="City", locationmode='USA-states', size="Sales", title='Sales by City')
+    fig = px.choropleth(sales_by_city,
+                        locations="City",
+                        locationmode="USA-states",
+                        color="Sales",
+                        hover_name="City",
+                        color_continuous_scale=px.colors.sequential.Plasma,
+                        title="Sales by City")
+
+    fig.update_geos(
+        visible=True,
+        resolution=50,
+        showcountries=True,
+        countrycolor="RebeccaPurple"
+    )
+
+    fig.update_layout(
+        geo=dict(
+            showframe=False,
+            showcoastlines=True,
+            coastlinecolor="RebeccaPurple",
+            projection_type='mercator'
+        ),
+        coloraxis_colorbar=dict(
+            title="Sales",
+            tickvals=[sales_by_city['Sales'].min(), sales_by_city['Sales'].max()],
+            ticktext=["Low", "High"]
+        )
+    )
     plot_data_uri = fig.to_html(full_html=False)
     return plot_data_uri
 
